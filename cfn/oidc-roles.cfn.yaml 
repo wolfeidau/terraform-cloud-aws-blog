@@ -1,0 +1,64 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "wolfeidau: This role creates the resources required to connect to AWS from Terraform Cloud"
+Parameters:
+  OrganizationName:
+    Type: String
+    Description: "The name of the organization in terraform cloud"
+
+  ProjectName:
+    Type: String
+    Description: "The name of the project in terraform cloud"
+
+  WorkspaceName:
+    Type: String
+    Description: "The name of the workspace in terraform cloud"
+
+  Audience:
+    Type: String
+    Default: "aws.workload.identity"
+
+Outputs:
+  DeloymentRoleARN:
+    Value: !GetAtt TerraformDeploymentRole.Arn
+  Audience:
+    Value: !Ref Audience
+
+Resources:
+  TerraformDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Ref TerraformOIDCProvider
+            Condition:
+              StringEquals:
+                app.terraform.io:aud: !Ref Audience
+              StringLike:
+                app.terraform.io:sub: !Sub organization:${OrganizationName}:project:${ProjectName}:workspace:${WorkspaceName}:run_phase:*
+
+  TerraformDeployPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "root"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:ListBucket"
+            Resource: '*'
+      Roles:
+        - Ref: TerraformDeploymentRole
+  
+  TerraformOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://app.terraform.io
+      ClientIdList:
+        - !Ref Audience
+      ThumbprintList:
+        - 9e99a48a9960b14926bb7f3b02e22da2b0ab7280
