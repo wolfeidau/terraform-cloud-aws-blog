@@ -1,6 +1,6 @@
 # terraform-cloud-aws-blog
 
-This is the code related to a blog post I am posting about deploying infrastructure to AWS using Terraform Cloud without using IAM User Credentials.
+This is the code related to a blog post on how to [Stop using IAM User Credentials with Terraform Cloud](https://www.wolfe.id.au/2023/07/17/stop-using-iam-user-credentials-with-terraform-cloud/).
 
 # Contents
 
